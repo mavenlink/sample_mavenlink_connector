@@ -1,0 +1,3 @@
+[submodule "connector_service_definition"]
+	path = connector_service_definition
+	url = git@github.com:mavenlink/connector_service_definition.git
