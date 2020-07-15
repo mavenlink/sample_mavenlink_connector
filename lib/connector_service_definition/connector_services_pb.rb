@@ -2,7 +2,7 @@
 # Source: connector_service_definition/connector.proto for package 'grpc'
 
 require 'grpc'
-require 'connector_service_definition/connector_pb'
+require_relative 'connector_pb'
 
 module Grpc
   module Connector
