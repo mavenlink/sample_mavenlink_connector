@@ -7,7 +7,11 @@ GEM
       minitest (~> 5.1)
       tzinfo (~> 1.1)
       zeitwerk (~> 2.2, >= 2.2.2)
+    addressable (2.7.0)
+      public_suffix (>= 2.0.2, < 5.0)
     concurrent-ruby (1.1.6)
+    crack (0.4.3)
+      safe_yaml (~> 1.0.0)
     diff-lcs (1.4.4)
     google-protobuf (3.12.2)
     googleapis-common-protos-types (1.0.5)
@@ -16,6 +20,7 @@ GEM
       google-protobuf (~> 3.12)
       googleapis-common-protos-types (~> 1.0)
     grpc-tools (1.30.1)
+    hashdiff (1.0.1)
     i18n (1.8.3)
       concurrent-ruby (~> 1.0)
     json (2.3.1)
@@ -26,6 +31,7 @@ GEM
       middleware
       thor
       thread_safe
+    public_suffix (4.0.5)
     rspec (3.9.0)
       rspec-core (~> 3.9.0)
       rspec-expectations (~> 3.9.0)
@@ -39,10 +45,15 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
     rspec-support (3.9.3)
+    safe_yaml (1.0.5)
     thor (1.0.1)
     thread_safe (0.3.6)
     tzinfo (1.2.7)
       thread_safe (~> 0.1)
+    webmock (3.8.3)
+      addressable (>= 2.3.6)
+      crack (>= 0.3.2)
+      hashdiff (>= 0.4.0, < 2.0.0)
     zeitwerk (2.4.0)
 
 PLATFORMS
@@ -54,6 +65,7 @@ DEPENDENCIES
   json (~> 2.3.0)
   protobuf
   rspec
+  webmock
 
 BUNDLED WITH
    2.1.4
