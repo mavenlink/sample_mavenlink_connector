@@ -6,8 +6,9 @@ require 'openssl'
 class ConnectorServer < Grpc::Connector::Service
   def triggers(triggers_req, _unused_call)
     Grpc::TriggersResponse.new(triggers: [
-      Grpc::Trigger.new(display_name: "Invoice Paid", type: "invoice_paid", app_key: "mavenlink", description: "Get ID of project when invoice is paid", outputs: [
+      Grpc::Trigger.new(display_name: "Invoice Paid", type: "paid_invoice", app_key: "mavenlink", description: "Get paid invoices from Mavenlink", outputs: [
         Grpc::Field.new(display_name: "Project ID", key: "project_id", type: "text", description: "The ID of the project to be closed."),
+        Grpc::Field.new(display_name: "Paid Invoice", key: "invoice", type: "text", description: "The paid invoice")
       ])
     ])
   end
@@ -31,24 +32,25 @@ class ConnectorServer < Grpc::Connector::Service
 
   def perform_trigger(trigger_request, _unused_call=nil)
     token = trigger_request.params["token"]
-    get_project_id_for_paid_invoice(token)
+    last_polled_at = trigger_request.params["last_polled_at"]
+    get_paid_invoices(token, last_polled_at)
   end
 
   private
 
-  def get_project_id_for_paid_invoice(token)
-      url = URI("https://api.msync.mvn.link/api/v1/invoices?paid=true&include=workspaces&order=updated_at:desc")
-      https = Net::HTTP.new(url.host, url.port);
-      https.use_ssl = true
+  def get_paid_invoices(token, last_polled_at)
+    url = URI("https://api.msync.mvn.link/api/v1/invoices?include=workspaces&order=updated_at:desc&updated_after=#{last_polled_at}&paid=true")
+    https = Net::HTTP.new(url.host, url.port);
+    https.use_ssl = true
 
-      request = Net::HTTP::Get.new(url)
-      request["Authorization"] = "Bearer #{token}"
+    request = Net::HTTP::Get.new(url)
+    request["Authorization"] = "Bearer #{token}"
 
-      response = https.request(request)
-      project_id = JSON.parse(response.body)["invoices"].values[0]["workspace_ids"].first
+    response = https.request(request)
+    invoices = JSON.parse(response.body)["invoices"]
 
-      event = Grpc::Event.new(payload: {"project_id" => project_id}.to_json, type: "invoice_paid")
-      Grpc::TriggerResponse.new(status: :SUCCESS, events: [event])
+    events = invoices.values.map { |invoice| Grpc::Event.new(payload: {"invoice" => invoice, "project_id" => invoice["workspace_ids"].first}.to_json, type: "paid_invoice")}
+    Grpc::TriggerResponse.new(status: :SUCCESS, events: events)
   end
 
   def archive_project_from_id(token, project_id)

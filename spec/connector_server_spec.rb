@@ -19,8 +19,9 @@ describe ConnectorServer do
             triggers_req = Grpc::TriggersRequest.new()
 
             expect(described_class.new.triggers(triggers_req, {}).triggers).to eq(
-                [Grpc::Trigger.new(display_name: "Invoice Paid", type: "invoice_paid", app_key: "mavenlink", description: "Get ID of project when invoice is paid", outputs: [
+                [Grpc::Trigger.new(display_name: "Invoice Paid", type: "paid_invoice", app_key: "mavenlink", description: "Get paid invoices from Mavenlink", outputs: [
                   Grpc::Field.new(display_name: "Project ID", key: "project_id", type: "text", description: "The ID of the project to be closed."),
+                  Grpc::Field.new(display_name: "Paid Invoice", key: "invoice", type: "text", description: "The paid invoice")
                 ])
               ])
         end
@@ -58,8 +59,9 @@ describe ConnectorServer do
         it 'will pull the work id for the most recently paid invoice' do
           file = File.read('./spec/fixtures/invoice_paid_fixture.json')
           body = file
+          last_polled_at = "2020-07-29T17:37:25"
 
-          stub_request(:get, "https://api.msync.mvn.link/api/v1/invoices?paid=true&include=workspaces&order=updated_at:desc").
+          stub_request(:get, "https://api.msync.mvn.link/api/v1/invoices?include=workspaces&order=updated_at:desc&updated_after=#{last_polled_at}&paid=true").
         with(
           headers: {
        	    'Accept'=>'*/*',
@@ -71,13 +73,15 @@ describe ConnectorServer do
             to_return(status: 200, body: body, headers: {})
 
           trigger_request = Grpc::TriggerRequest.new(trigger: 
-            Grpc::Trigger.new(display_name: "Invoice Paid", type: "invoice_paid", app_key: "mavenlink"), params: {"token" => "whatever"}
+            Grpc::Trigger.new(display_name: "Invoice Paid", type: "invoice_paid", app_key: "mavenlink"), params: {"token" => "whatever", "last_polled_at" => "2020-07-29T17:37:25"}
           )
-          event = Grpc::Event.new(payload: {"project_id" => "53754"}.to_json, type: "invoice_paid") 
+          invoices = JSON.parse(body)["invoices"]
+
+          events = invoices.values.map { |invoice| Grpc::Event.new(payload: {"invoice" => invoice, "project_id" => invoice["workspace_ids"].first}.to_json, type: "paid_invoice")}
           
           response = described_class.new.perform_trigger(trigger_request)
           expect(response.status).to eq :SUCCESS
-          expect(response).to eq(Grpc::TriggerResponse.new(status: :SUCCESS, events: [event]))
+          expect(response).to eq(Grpc::TriggerResponse.new(status: :SUCCESS, events: events ))
         end
     end
 end
