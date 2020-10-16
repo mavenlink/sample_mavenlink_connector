@@ -6,7 +6,7 @@ require 'openssl'
 class ConnectorServer < Grpc::Connector::Service
   def triggers(triggers_req, _unused_call)
     Grpc::TriggersResponse.new(triggers: [
-      Grpc::Trigger.new(display_name: "Invoice Paid", type: "paid_invoice", app_key: "mavenlink", description: "Get paid invoices from Mavenlink", outputs: [
+      Grpc::Trigger.new(display_name: "Invoice Paid", type: "paid_invoice", app_key: "mavenlink", outputs: [
         Grpc::Field.new(display_name: "Project ID", key: "project_id", type: "text", description: "The ID of the project to be closed."),
         Grpc::Field.new(display_name: "Paid Invoice", key: "invoice", type: "text", description: "The paid invoice")
       ])
@@ -49,7 +49,7 @@ class ConnectorServer < Grpc::Connector::Service
     response = https.request(request)
     invoices = JSON.parse(response.body)["invoices"]
 
-    events = invoices.values.map { |invoice| Grpc::Event.new(payload: {"invoice" => invoice, "project_id" => invoice["workspace_ids"].first}.to_json, type: "paid_invoice")}
+    events = invoices.values.map { |invoice| Grpc::Event.new(payload: {"invoice" => invoice, "project_id" => invoice["workspace_ids"].first}.to_json)}
     Grpc::TriggerResponse.new(status: :SUCCESS, events: events)
   end
 
