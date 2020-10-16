@@ -29,7 +29,6 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :type, :string, 2
       optional :app_key, :string, 3
       repeated :outputs, :message, 4, "grpc.Field"
-      optional :description, :string, 5
     end
     add_message "grpc.TriggerRequest" do
       optional :trigger, :message, 1, "grpc.Trigger"
@@ -64,7 +63,6 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     end
     add_message "grpc.Event" do
       optional :payload, :string, 1
-      optional :type, :string, 2
     end
   end
 end

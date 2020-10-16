@@ -14,13 +14,13 @@ module Grpc
       self.unmarshal_class_method = :decode
       self.service_name = 'grpc.Connector'
 
-      rpc :triggers, TriggersRequest, TriggersResponse
+      rpc :triggers, ::Grpc::TriggersRequest, ::Grpc::TriggersResponse
       # used by Workflows to get triggers defined by the Connector. Run when a user registers or refreshes a Connector.
-      rpc :perform_trigger, TriggerRequest, TriggerResponse
+      rpc :perform_trigger, ::Grpc::TriggerRequest, ::Grpc::TriggerResponse
       # used by Workflows to check for trigger events. Polled periodically.
-      rpc :actions, ActionsRequest, ActionsResponse
+      rpc :actions, ::Grpc::ActionsRequest, ::Grpc::ActionsResponse
       # used by Workflows to get get actions defined by the Connector. Run when a user registers or refreshes a Connector.
-      rpc :perform_action, ActionRequest, ActionResponse
+      rpc :perform_action, ::Grpc::ActionRequest, ::Grpc::ActionResponse
       # used by Workflows to perform an action defined by the Connector. Run when a Workflow containing the defined action is run.
     end
 
